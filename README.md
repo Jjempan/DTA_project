@@ -1,5 +1,5 @@
 # DTA_project
-Project written in Python exploring queueing theory with SimPy, an event simulator for Python.
+Project written in Python exploring M/M/1 queueing theory with SimPy, an event simulator for Python.
 
 # Queueing Theory Simulation in Python
 
@@ -7,9 +7,9 @@ This Python simulation explores queueing theory using a library scenario where v
 
 # Project Overview
 
-This simulation models visitors arriving at a library to borrow books, with each book acting as a server with only one copy of each. Costumers may leave (packet-drop) if the queue reaches a certain limit, simulating a system with a maximum queue size. The library has:
+This simulation models visitors arriving at a library to borrow a book, the book is acting as a server. Costumers may leave (packet-drop) if the queue reaches a certain limit, simulating a system with a maximum queue size. The library has:
 
-- Two books (= two servers) that are borrowed by visitors.
+- One book (= one server) that are borrowed by visitors.
 - A limited loan period with probabilities determining on-time returns.
 - A maximum queue length; additional visitors leave if this length is reached.
 
@@ -70,9 +70,6 @@ bash
 python library_queue_simpy.py
 
 
-# This will display statistics in the console and generate two visualizations:
-1. Average, max, and min wait times per book.
-2. Packet-drop counts per book.
 
 
 
