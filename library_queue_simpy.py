@@ -1,13 +1,12 @@
 import simpy
 import random
-import matplotlib.pyplot as plt
 
 # Konstantinställningar
 RANDOM_SEED = 42
 NUM_COPIES = 1  # Antal kopior av varje bok
 BOOK_TITLE = "Server 1"
 
-LOAN_DURATION = 5  # Lånetid i dagar (motsvarar servertime)
+LOAN_DURATION = 4  # Lånetid i dagar (motsvarar servertime)
 RETURN_PROB = 0.8  # Sannolikheten för att boken lämnas tillbaka i tid
 SIM_TIME = 365  # Simuleringstid i dagar
 MAX_QUEUE_SIZE = 10  # Max antal personer i kön
@@ -23,7 +22,7 @@ def visitor(env, name, library):
     """Simulerar en besökare som vill låna en bok och senare lämna tillbaka den."""
     global busy_time
     arrival_time = env.now
-    queue_length = len(library.queue)  
+    queue_length = len(library.queue)
     
     # Logga ankomsttiden och kölängden för att beräkna genomsnittlig kölängd
     arrival_times.append(arrival_time)
@@ -33,12 +32,17 @@ def visitor(env, name, library):
     if queue_length >= MAX_QUEUE_SIZE:
         global queue_drops
         queue_drops += 1
+        print(f"{env.now:.2f} dagar: {name} kunde inte gå med i kön (queue full).")
         return
     
+    print(f"{env.now:.2f} dagar: {name} har anlänt och ställt sig i kö.")
+
     with library.request() as request:
         yield request
         wait_time = env.now - arrival_time
         wait_times.append(wait_time)
+        
+        print(f"{env.now:.2f} dagar: {name} börjar låna boken. Väntetid: {wait_time:.2f} dagar.")
         
         # Logga upptagen tid för empirisk utilization
         loan_time = LOAN_DURATION
@@ -46,11 +50,15 @@ def visitor(env, name, library):
         
         yield env.timeout(loan_time)
         
+        print(f"{env.now:.2f} dagar: {name} lämnar tillbaka boken efter {loan_time} dagar.")
+        
         # Returnera boken med viss sannolikhet
         if random.uniform(0, 1) >= RETURN_PROB:
             delay = random.randint(1, 7)
             busy_time += delay
+            print(f"{env.now:.2f} dagar: {name} är försenad och håller boken {delay} extra dagar.")
             yield env.timeout(delay)
+            print(f"{env.now:.2f} dagar: {name} har slutligen lämnat tillbaka boken efter förseningen.")
 
 def setup(env, num_copies, book_title):
     """Setup av biblioteket med resurs för boken."""
@@ -58,7 +66,7 @@ def setup(env, num_copies, book_title):
     
     i = 0
     while True:
-        yield env.timeout(random.randint(1, 5))  # Ny besökare var 1-5 dag
+        yield env.timeout(random.randint(1, 10))  # Ny besökare var 1-10 dag
         i += 1
         env.process(visitor(env, f'Besökare {i}', library))
 
@@ -71,51 +79,23 @@ env.process(setup(env, NUM_COPIES, BOOK_TITLE))
 # Kör simuleringen
 env.run(until=SIM_TIME)
 
-# Beräkningar för M/M/1-köstatistik
+# Beräkningar för M/M/1/k
 λ = len(arrival_times) / SIM_TIME  # Ankomsttakt
 μ = 1 / LOAN_DURATION  # Tjänstetakt
 ρ = λ / μ  # Teoretisk intensitet
-L = λ / (μ - λ) if μ > λ else float('inf')  # Genomsnittligt antal i systemet
-W = 1 / (μ - λ) if μ > λ else float('inf')  # Genomsnittlig tid i systemet
-Lq = (λ ** 2) / (μ * (μ - λ)) if μ > λ else float('inf')  # Genomsnittligt antal i kön
-Wq = λ / (μ * (μ - λ)) if μ > λ else float('inf')  # Genomsnittlig tid i kön
 empirical_utilization = busy_time / SIM_TIME
 average_queue_length = sum(queue_lengths) / len(queue_lengths) if queue_lengths else 0  # Genomsnittlig kölängd
 
-# Visa köstatistik
+
+successful_loans = len(wait_times)
+throughput_per_loan_period = successful_loans / (SIM_TIME / LOAN_DURATION)
+
+
 print(f'\nKöstatistik för {BOOK_TITLE}:')
 print(f"Ankomsttakt (λ): {λ:.2f}")
 print(f"Tjänstetakt (μ): {μ:.2f}")
 print(f"Teoretisk intensitet (ρ): {ρ:.2f}")
 print(f"Empirisk intensitet: {empirical_utilization:.2f}")
-print(f"Genomsnittligt antal i systemet (L): {L:.2f}")
-print(f"Genomsnittlig tid i systemet (W): {W:.2f} dagar")
-print(f"Genomsnittligt antal i kön (Lq): {Lq:.2f}")
-print(f"Genomsnittlig tid i kön (Wq): {Wq:.2f} dagar")
 print(f"Genomsnittlig kölängd: {average_queue_length:.2f}")
 print(f"Antal packet-drops: {queue_drops}")
-
-# Visualisera packet-drops och empirisk intensitet
-plt.style.use('ggplot')
-
-# Visualisera packet-drops
-plt.figure(figsize=(10, 6))
-plt.bar(["Packet Drops"], [queue_drops], color='#9e9ac8')
-plt.ylabel('Antal packet-drops')
-plt.title('Antal packet-drops')
-plt.show()
-
-# Visualisera empirisk intensitet och genomsnittlig kölängd
-plt.figure(figsize=(10, 6))
-plt.bar(["Empirisk Intensitet", "Genomsnittlig Kö"], [empirical_utilization, average_queue_length], color=['#74c476', '#6baed6'])
-plt.ylabel('Värde')
-plt.title('Empirisk Intensitet och Genomsnittlig Kö')
-plt.show()
-
-
-for n in wait_times:
-    print(n)
-
-
-for a in arrival_times:
-    print(a)
+print(f"Genomströmning (Throughput) per låneperiod: {throughput_per_loan_period:.2f} lån per låneperiod")
