@@ -1,5 +1,5 @@
 # DTA_project
-Project written in Python exploring M/M/1 queueing theory with SimPy, an event simulator for Python.
+Project written in Python exploring M/M/1/K queueing theory with SimPy, an event simulator for Python.
 
 # Queueing Theory Simulation in Python
 
@@ -17,12 +17,12 @@ This simulation models visitors arriving at a library to borrow a book, the book
 
 - Python 3.x
 - SimPy
-- Matplotlib
+
 
 # Install required libraries using:
 
 bash:
-pip install simpy matplotlib
+pip install simpy 
 
 # Simulation Parameters
 
@@ -43,18 +43,16 @@ MAX_QUEUE_SIZE: Maximum number of visitors in the queue.
 
 3. Queue Statistics: Calculates M/M/1 queue statistics:
    - λ (arrival rate), μ(service rate), and ρ (intensity).
-   - Average system length (L), wait time (W), queue length (Lq), and queue wait time (Wq).
+ 
 
 # Results
 
-The program calculates queue metrics and displays:
+The program calculates queue metrics:
 
 Arrival Rate (λ and Service Rate (μ)
 System Intensity (ρ): Ratio of arrival rate to service rate.
-Average System Length (L): Expected number of visitors in the system.
-Average Wait Time (W): Expected time a visitor spends in the system.
+Empirical utilization.
 Average Queue Length (Lq): Expected number of visitors waiting.
-Queue Wait Time (Wq): Expected time a visitor waits in the queue.
 Packet-Drops: Number of visitors who leave due to a full queue.
 
 # Visualizations
