@@ -23,7 +23,7 @@ def visitor(env, name, library):
     """Simulerar en besökare som vill låna en bok och senare lämna tillbaka den."""
     global busy_time
     arrival_time = env.now
-    queue_length = len(library.queue)
+    queue_length = len(library.queue)  
     
     # Logga ankomsttiden och kölängden för att beräkna genomsnittlig kölängd
     arrival_times.append(arrival_time)
@@ -111,3 +111,11 @@ plt.bar(["Empirisk Intensitet", "Genomsnittlig Kö"], [empirical_utilization, av
 plt.ylabel('Värde')
 plt.title('Empirisk Intensitet och Genomsnittlig Kö')
 plt.show()
+
+
+for n in wait_times:
+    print(n)
+
+
+for a in arrival_times:
+    print(a)
