@@ -1,6 +1,6 @@
 import simpy
 import random
-
+ 
 # Konstantinställningar
 RANDOM_SEED = 42
 NUM_COPIES = 1  # Antal kopior av varje bok
